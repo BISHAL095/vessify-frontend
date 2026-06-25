@@ -4,7 +4,10 @@ import type { NextRequest } from 'next/server'
 export function middleware(req: NextRequest) {
   const hasAuthCookie = req.cookies
     .getAll()
-    .some(c => c.name === 'better-auth.session_token')
+    .some(c =>
+      c.name === 'better-auth.session_token' ||
+      c.name === '__Secure-better-auth.session_token'
+    )
 
   if (
     !hasAuthCookie &&
@@ -23,4 +26,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 }
-

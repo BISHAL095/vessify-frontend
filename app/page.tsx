@@ -5,17 +5,21 @@ import TransactionTable from '@/components/TransactionTable'
 
 
 export default async function HomePage() {
-  const cookie = (await headers()).get('cookie') ?? ''
+  const requestHeaders = await headers()
+  const cookie = requestHeaders.get('cookie') ?? ''
+  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host')
+  const protocol = requestHeaders.get('x-forwarded-proto') ?? 'http'
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
-    {
-      headers: {
-        cookie,
-      },
-      cache: 'no-store',
-    }
-  )
+  if (!host) {
+    redirect('/login')
+  }
+
+  const res = await fetch(`${protocol}://${host}/api/auth/get-session`, {
+    headers: {
+      cookie,
+    },
+    cache: 'no-store',
+  })
 
   const session = await res.json()
 
