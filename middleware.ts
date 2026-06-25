@@ -12,3 +12,9 @@ export function middleware(req: NextRequest) {
 
   return NextResponse.next()
 }
+// Only apply middleware to app routes, exclude auth and Next.js internals
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+  ],
+}
