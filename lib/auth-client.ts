@@ -1,9 +1,12 @@
 import { createAuthClient } from 'better-auth/react'
 
-// Client-side Better Auth instance — used in client components only
-// Use a same-origin API base path so cookies are managed by the browser
 export const authClient = createAuthClient({
-  basePath: '/api/auth',
+  baseURL: process.env.NEXT_PUBLIC_API_URL!,
 })
 
-export const { signIn, signUp, signOut, useSession } = authClient
+export const {
+  signIn,
+  signUp,
+  signOut,
+  useSession,
+} = authClient
