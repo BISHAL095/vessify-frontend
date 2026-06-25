@@ -1,61 +1,110 @@
 # Vessify Frontend
 
-Minimal Next.js app for Vessify with authenticated transaction parsing and management.
+> Multi-tenant personal finance transaction extractor — Next.js 15 frontend with Better Auth session management.
 
-## Overview
+## Tech Stack
 
-- `app/login/page.tsx` - login UI using Better Auth
-- `app/register/page.tsx` - registration flow with org creation
-- `app/page.tsx` - protected transaction dashboard
-- `middleware.ts` - protects app routes and allows auth API access
-- `lib/auth-client.ts` - Better Auth client configuration
-- `lib/auth-server.ts` - server-side session validation
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Auth | Better Auth client |
+| UI | shadcn/ui + Tailwind CSS |
+| Deployment | Vercel |
+
+## Live URL
+
+```
+https://your-app.vercel.app
+```
 
 ## Setup
 
-1. Install dependencies:
+### 1. Clone and install
 
 ```bash
+git clone https://github.com/yourusername/vessify-frontend
+cd vessify-frontend
 npm install
 ```
 
-2. Start development server:
+### 2. Environment variables
+
+```bash
+cp .env.local.example .env.local
+```
+
+Fill in `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3001
+BETTER_AUTH_SECRET=same-secret-as-backend
+```
+
+> `BETTER_AUTH_SECRET` must be identical to the backend secret.
+
+### 3. Run the dev server
 
 ```bash
 npm run dev
 ```
 
-3. Open the frontend in your browser:
+Frontend runs on `http://localhost:3000`
 
-```text
-http://localhost:3000
+> The backend must be running on port 3001 before starting the frontend.
+
+## Deploying to Vercel
+
+1. Push this repo to GitHub
+2. Go to [vercel.com](https://vercel.com) → New Project → Import repo
+3. Add environment variables in Vercel dashboard:
+```
+   NEXT_PUBLIC_API_URL=https://your-render-url.onrender.com
+   BETTER_AUTH_SECRET=same-secret-as-backend
+```
+4. Deploy — Vercel auto-detects Next.js, no build config needed
+
+> After deploying, update `trustedOrigins` in the backend `src/lib/auth.ts`
+> to include your Vercel URL, then redeploy the backend.
+
+## Project Structure
+
+```
+app/
+├── page.tsx              # Protected home — Server Component, checks session
+├── login/
+│   └── page.tsx          # Login form — Client Component
+└── register/
+    └── page.tsx          # Register form — calls custom /api/auth/register
+components/
+├── TransactionForm.tsx   # Textarea + Parse & Save — Client Component
+└── TransactionTable.tsx  # Paginated table with Load More — Client Component
+lib/
+├── auth-client.ts        # Better Auth browser client (signIn, signOut, useSession)
+└── auth-server.ts        # Better Auth server instance (getSession in Server Components)
+middleware.ts             # Edge middleware — redirects unauthenticated users to /login
 ```
 
-## Environment
+## How Auth Works
 
-Copy or create `.env.local` with:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
-BETTER_AUTH_SECRET="your-better-auth-secret"
+```
+Register → Custom /api/auth/register (creates User + Org atomically)
+Login    → Better Auth /api/auth/sign-in/email (sets httpOnly session cookie)
+Protected pages → middleware checks cookie → Server Component validates session
+API calls → credentials: 'include' sends cookie → backend verifies via getSession()
 ```
 
-The frontend uses a Next.js rewrite to proxy `/api/*` requests to the backend on `http://localhost:3001`.
+## Test Credentials
 
-## Auth flow
-
-- Frontend uses same-origin auth routes under `/api/auth`
-- Login and register requests are proxied to the backend
-- Session cookie is managed by Better Auth
-- The protected homepage checks session state server-side and redirects unauthenticated users to `/login`
-
-## Run build
-
-```bash
-npm run build
+```
+User 1: alice@test.com  /  Pass123!  (Alice Org)
+User 2: bob@test.com    /  Pass123!  (Bob Org)
 ```
 
-## Notes
+Open User 2 in an incognito window to test data isolation between orgs.
 
-- Backend must be running at `http://localhost:3001`
-- The backend needs `DATABASE_URL` and `BETTER_AUTH_URL` configured
+## AI Tools Used
+
+Claude (claude.ai) was used for component architecture, debugging React
+rendering issues, and Better Auth frontend integration.
+All generated code was reviewed and understood line by line before committing.
